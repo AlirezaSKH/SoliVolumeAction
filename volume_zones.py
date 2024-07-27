@@ -1,17 +1,20 @@
 import pandas as pd
 
-def detect_volume_zones(data):
-    # Convert data to DataFrame
+def calculate_swing_points(data):
+    # Convert data to DataFrame and rename columns
     df = pd.DataFrame(data)
-    
-    # Rename columns for better readability
     df.columns = ['close', 'high', 'low', 'open', 'status', 'timestamp', 'volume']
-    
-    # Convert timestamps to datetime
     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
-    
-    # Example threshold logic: high volume zones
-    volume_threshold = df['volume'].mean() + df['volume'].std()  # Example threshold
-    volume_zones = df[df['volume'] > volume_threshold]
-    
-    return volume_zones
+
+    # Identify major swings
+    df['swing'] = ((df['close'] - df['close'].shift()) * (df['close'] - df['close'].shift(-1)) < 0).astype(int)
+    swings = df[df['swing'] == 1]
+
+    # Select the last two swings
+    recent_swings = swings.tail(2)  # Get the last two swings
+
+    # Print detected swings for debugging
+    print("Detected Swings:")
+    print(recent_swings)
+
+    return recent_swings
